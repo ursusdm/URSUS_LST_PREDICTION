@@ -125,6 +125,10 @@ git clone https://github.com/ursusdm/URSUS_LST_PREDICTION.git
     <a>
     <img src="5.png">
   </a>
+  </a>
+    <a>
+    <img src="percents.png">
+  </a>
     <a>
     <img src="6.png">
   </a>
