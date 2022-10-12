@@ -1,0 +1,509 @@
+---
+title: "LST prediction models"
+author: "Francisco Rodríguez Gómez, Domingo López Rodríguez, José del Campo Ávila, Luis Pérez Urrestarazu"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    df_print: kable
+    number_sections: true
+  html_document: 
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    df_print: kable
+    theme: united
+    highlight: tango
+    fig_caption: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=60), echo = TRUE, 
+                      cache = FALSE, dev = 'pdf')
+```
+
+
+```{r libraries, include=FALSE}
+
+library (knitr)
+
+#library(parallel)
+
+library(scico)
+
+library(tidyverse)
+library(ggplot2)
+
+library(rpart.plot)
+library(rpart)
+library(randomForest)
+library(caret)
+library(cetcolor)
+library(caTools)
+library(Metrics)
+
+library(factoextra)
+library(clustertend)
+library(data.table)
+library (DescTools)
+library(RColorBrewer)
+library(wesanderson)
+
+library(formatR)
+library(kableExtra)
+library(ggpubr)
+library(colorRamps)
+library(RColorBrewer)
+library(sen2r)
+
+
+library(tools)
+library(fieldRS)
+
+library(doParallel)
+library(mlbench)
+library (vip)
+library (NeuralNetTools)
+```
+
+# Read dataset
+```{r}
+library (dplyr)
+# Load dataset
+dfFinal <- read.csv("DF_FINAL_FOR_MODEL_TRAINING.csv")
+
+# Eliminamos las coordenadas, la ID del punto, la lst normalizada, el DAI y el DAI norm.
+dfFinal <- dfFinal %>% select(-coord_x,-coord_y,-lst_norm,-dai,-ID,-dai_norm)
+
+# Eliminamos la temperatura en el radio
+dfFinal <- dfFinal %>% select(-temp_less_250,-temp_250_500,
+-temp_250_500,-temp_500_750,-temp_750_1000)
+
+```
+
+## Nueva metodología de entrenamiento de modelos.
+
+- Se van probar diferentes algoritmos (SVR, NN, RF, ...)
+- Se van a entrenar 5 modelos para cada algoritmo (5 configuraciones diferentes)
+- Se va a realizar un 10-fold  para cada configuración de cada algoritmo para calcular el error medio de los modelos
+
+# Random forest (10-fold para cada una de las 5 configuraciones siguientes)
+
+- param ntrees = {50,100,150,200,250}
+
+```{r}
+#https://machinelearningmastery.com/tune-machine-learning-algorithms-in-r/
+library(randomForest)
+library(mlbench)
+library(caret)
+library(e1071)
+ 
+dataset <- dfFinal
+control <- trainControl(method = 'repeatedcv',
+                        number = 10,
+                        repeats = 1,
+                        search = 'grid')
+#create tunegrid
+tunegrid <- expand.grid(.mtry = c(sqrt(ncol(dataset))))
+modellist <- list()
+
+#train with different ntree parameters
+for (ntree in c(50,100,150,200, 250)){
+  set.seed(123)
+  fit <- train(lst~.,
+               data = dataset,
+               method = 'rf',
+               metric = 'RMSE',
+               tuneGrid = tunegrid,
+               trControl = control,
+               verbose = TRUE,
+               ntree = ntree)
+  key <- toString(ntree)
+  modellist[[key]] <- fit
+}
+
+```
+
+# Imprimimos los 5 valores de RMSE y MAE (para poder quedarnos con el mejor modelo)
+
+```{r}
+saveRDS (modellist,"modellistRF.rds")
+
+MAE <- c(modellist$`50`$results$MAE,
+          modellist$`100`$results$MAE,
+          modellist$`150`$results$MAE,
+          modellist$`200`$results$MAE,
+          modellist$`250`$results$MAE)
+
+RMSE <- c(modellist$`50`$results$RMSE,
+          modellist$`100`$results$RMSE,
+          modellist$`150`$results$RMSE,
+          modellist$`200`$results$RMSE,
+          modellist$`250`$results$RMSE)
+
+dfError <- cbind(seq(50, 250, by=50),MAE,RMSE)
+
+colnames (dfError) <- c ("NTREES","MAE","RMSE")
+
+
+ggplot(data.frame(dfError), aes(NTREES)) + 
+  geom_line(aes(y = RMSE, colour = "RMSE")) + 
+  ylab("RMSE")+geom_point(aes(y = RMSE, colour = "RMSE"))
+
+ggplot(data.frame(dfError), aes(NTREES)) + 
+  geom_line(aes(y = MAE, colour = "MAE"))+
+  ylab("MAE")+geom_point(aes(y = MAE, colour = "MAE"))
+```
+
+# SVM
+
+- param C {0.2,0.4,0.6,0.8,1}
+
+Cada configuración será evaluada con un 10 fold. 
+
+```{r}
+dataset <- dfFinal
+
+control <- trainControl(method = 'repeatedcv',
+                        number = 10,
+                        repeats = 1)
+
+
+set.seed(123)
+fit <- train(lst~.,
+             data = dataset,
+             method = 'svmRadial',
+             trControl = control,
+             tuneLength = 5,
+             verbose = TRUE
+)
+```
+
+## Save model and plot result
+
+```{r}
+
+saveRDS (fit,"modelsSVM.rds")
+ggplot(fit$results, aes(C)) + 
+  geom_line(aes(y = RMSE, colour = "RMSE")) + 
+  ylab("RMSE")+geom_point(aes(y = RMSE, colour = "RMSE"))
+ggplot(fit$results, aes(C)) + 
+  geom_line(aes(y = MAE, colour = "MAE"))+
+  ylab("MAE")+geom_point(aes(y = MAE, colour = "MAE"))
+
+
+```
+
+# Bagging
+
+- 5 conf: bags c {10,20,20,40,50}
+
+```{r}
+dataset <- dfFinal
+
+set.seed(123)
+
+cntrl <- trainControl(method = "repeatedcv", number = 10, repeats = 1)
+modellist <- c()
+#train with different ntree parameters
+for (nbagg in c(10,20,25,35, 40)){
+  set.seed(123)
+  fit <- train(lst~.,
+               data = dataset,
+               method = 'treebag',
+               metric = 'RMSE',
+               trControl = cntrl,
+               verbose = TRUE,
+               nbagg = nbagg)
+  key <- toString(nbagg)
+  modellist[[key]] <- fit
+}
+
+
+
+```
+
+
+
+```{r}
+#saveRDS (modellist,"modellistBagging.rds")
+
+MAE <- c(modellist$`10`$results$MAE,
+          modellist$`20`$results$MAE,
+          modellist$`30`$results$MAE,
+          modellist$`40`$results$MAE,
+          modellist$`50`$results$MAE)
+
+RMSE <- c(modellist$`10`$results$RMSE,
+          modellist$`20`$results$RMSE,
+          modellist$`30`$results$RMSE,
+          modellist$`40`$results$RMSE,
+          modellist$`50`$results$RMSE)
+
+dfError <- cbind(seq(10, 50, by=10),MAE,RMSE)
+
+colnames (dfError) <- c ("NBAGGS","MAE","RMSE")
+
+
+ggplot(data.frame(dfError), aes(NBAGGS)) + 
+  geom_line(aes(y = RMSE, colour = "RMSE")) + 
+  ylab("RMSE")+geom_point(aes(y = RMSE, colour = "RMSE"))
+
+ggplot(data.frame(dfError), aes(NBAGGS)) + 
+  geom_line(aes(y = MAE, colour = "MAE"))+
+  ylab("MAE")+geom_point(aes(y = MAE, colour = "MAE"))
+```
+
+
+# NN
+
+hidden = {2,4,8,16,24} Número de neuronas ocultas
+
+```{r}
+dataset <- read.csv ("datasetNumeric.csv")
+dataset <- dataset %>% select(-X)
+is.num <- sapply(dataset, is.numeric)
+dataset[is.num] <- lapply(dataset[is.num], round, 2)
+```
+
+
+```{r}
+
+
+fitControl <- trainControl(method = "repeatedcv",
+                           number = 3,verboseIter = TRUE,
+                           repeats = 1)
+
+my.grid <- expand.grid(.decay = c(0.1), .size = c(24, 16, 8, 4, 2))
+fit <- train(lst ~ ., data = dataset, trControl = fitControl ,method = "nnet", maxit = 1000, tuneGrid = my.grid, trace = F, linout = 1) 
+
+
+```
+
+```{r}
+saveRDS (fit,"nnetFit.rds")
+```
+
+
+```{r}
+#saveRDS (modellist,"modellistBagging.rds")
+
+MAE <- fit$results$MAE
+
+RMSE <- fit$results$RMSE
+
+dfError <- cbind(c(2,4,8,16,24),MAE,RMSE)
+
+colnames (dfError) <- c ("HIDDENS_NEURONS","MAE","RMSE")
+
+
+ggplot(data.frame(dfError), aes(HIDDENS_NEURONS)) + 
+  geom_line(aes(y = RMSE, colour = "RMSE")) + 
+  ylab("RMSE")+geom_point(aes(y = RMSE, colour = "RMSE"))
+
+ggplot(data.frame(dfError), aes(HIDDENS_NEURONS)) + 
+  geom_line(aes(y = MAE, colour = "MAE"))+
+  ylab("MAE")+geom_point(aes(y = MAE, colour = "MAE"))
+```
+
+
+# Regression trees
+
+maxdepth = {1,2,3,4,5}
+
+
+```{r}
+
+set.seed(123)
+
+cntrl <- trainControl(method = "repeatedcv", number = 10, repeats = 1)
+modellist <- c()
+#train with different ntree parameters
+
+  fit <- train(lst~.,
+               data = dataset,
+               method = 'rpart2',
+               metric = 'RMSE',
+               trControl = cntrl,
+               tuneLength = 5)
+
+```
+
+```{r}
+saveRDS (fit,"RTmodels.rds")
+ggplot(fit$results, aes(maxdepth)) + 
+  geom_line(aes(y = RMSE, colour = "RMSE")) + 
+  ylab("RMSE")+geom_point(aes(y = RMSE, colour = "RMSE"))
+ggplot(fit$results, aes(maxdepth)) + 
+  geom_line(aes(y = MAE, colour = "MAE"))+
+  ylab("MAE")+geom_point(aes(y = MAE, colour = "MAE"))
+```
+
+## XGBOOST
+
+```{r}
+
+# nrounds <- 1000
+# 
+# tune_grid <- expand.grid(
+#   nrounds = seq(from = 200, to = nrounds, by = 50),
+#   eta = c(0.025, 0.05, 0.1, 0.3),
+#   max_depth = c(2, 3, 4, 5, 6),
+#   gamma = 0,
+#   colsample_bytree = 1,
+#   min_child_weight = 1,
+#   subsample = 1
+# )
+# 
+tune_control <- trainControl(
+  method = "cv", # cross-validation
+  number = 10, # with n folds
+  search = "grid"
+)
+
+gbmGrid <-  expand.grid(max_depth = c(3,7), 
+                        nrounds = c(250,500),    # number of trees
+                        # default values below
+                        eta = 0.3,
+                        gamma = 0,
+                        subsample = 1,
+                        min_child_weight = 1,
+                        colsample_bytree = 0.6)
+gbmGrid <- rbind (gbmGrid,c(3,750,0.3,0,1,1,0.6))
+
+xgb_tune <- train(lst~.,
+                     data= data.matrix(dataset),
+                     method="xgbTree",
+                     trControl=tune_control,
+                     tuneGrid=gbmGrid,
+                     metric="RMSE"
+                     )
+
+
+
+```
+
+
+
+```{r}
+#saveRDS (modellist,"modellistBagging.rds")
+
+plot (xgb_tune)
+```
+#Best model selected (Rf50) El de 250 lo mejora muy poco para tener un bosque con tantos árboles
+
+# RF 50
+
+```{r}
+
+```
+
+
+
+
+## Plot var importance of model
+
+```{r modelTraining} 
+plotImportanceScoring = function(varImp,title) {
+  V = varImp
+  ggplot2::ggplot(V, aes(x=reorder(rownames(V),Overall), y=Overall)) +
+  geom_point( color="blue", size=4, alpha=0.6)+
+  geom_segment( aes(x=rownames(V), xend=rownames(V), y=0, yend=Overall), 
+               color='skyblue') +
+  xlab('Variable')+
+  ylab('Overall Importance')+
+  theme_light() +
+  ggtitle (title) +
+  coord_flip() 
+}
+```
+
+## Plot sd, median, outliers, ... from data
+
+```{r}
+    # PLOTEAMOS CADA VARIABLE (outliers, mediana, sd, ...)
+    for (n in 1 : nrow(dfFinal)){
+      boxplot (dfFinal[n:n+1],show.names=TRUE)
+    }
+
+```
+
+## Var importance 
+
+- Retrain RF 50 with localimp (necesario para poder hacer explicativo el modelo y para listar la importancia de variables)
+
+```{r}
+dataset <- read.csv ("datasetNumeric.csv")
+
+#dataset <- dfFinal
+
+tunegrid <- expand.grid(.mtry = c(sqrt(ncol(dataset))))
+
+control <- trainControl(method = 'repeatedcv',
+                        number = 10,
+                        repeats = 1,
+                        search = 'grid')
+
+#train with different ntree parameters
+for (ntree in c(50)){
+  set.seed(123)
+  fit <- train(lst~.,
+               data = dataset,
+               method = 'rf',
+               metric = 'RMSE',
+               localImp = TRUE,
+               tuneGrid = tunegrid,
+               trControl = control,
+               verbose = TRUE,
+               ntree = ntree)
+}
+```
+
+```{r}
+saveRDS (fit,"rF50.rds")
+```
+
+```{r}
+# Explain RF (tarda bastantito)
+library ("randomForestExplainer")
+rF50 <- readRDS ("rF50.rds")
+explain_forest(rF50$finalModel, interactions = TRUE)
+```
+
+```{r}
+# importance variables
+plotImportanceScoring(varImp(rF50$finalModel, scale = FALSE),"RF 50 var importance")
+```
+
+
+
+# Train model with one variable (most important)
+
+```{r}
+
+dsOneVar <- dataset %>% select(lst,percent_over_24_less_250, percent_other_less_250, percent_build_12_24_less_250, percent_dense_veg_less_250, percent_build_less_12_less_250, percent_mod_veg_less_250, percent_low_veg_less_250, percent_low_veg_750_1000, percent_low_veg_500_750, percent_dense_veg_250_500)
+
+#dataset <- dfFinal
+
+tunegrid <- expand.grid(.mtry = c(sqrt(ncol(dataset))))
+
+control <- trainControl(method = 'repeatedcv',
+                        number = 10,
+                        repeats = 1,
+                        search = 'grid')
+
+#train with different ntree parameters
+for (ntree in c(50)){
+  set.seed(123)
+  fitOne <- train(lst~.,
+               data = dsOneVar,
+               method = 'rf',
+               metric = 'RMSE',
+               localImp = TRUE,
+               tuneGrid = tunegrid,
+               trControl = control,
+               verbose = TRUE,
+               ntree = ntree)
+}
+```
+
