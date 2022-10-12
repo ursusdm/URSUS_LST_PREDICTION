@@ -24,7 +24,7 @@
 <p align="center">
   
   <a>
-    <img src="ursus_all.jpg">
+    <img src="ursus_all.png">
   </a>
 
   <h3 align="center">Herramienta que permite estimar la temperatura(LST) en cualquier punto de cualquier ciudad, analizando las características urbanas (edificios, vegetación, agua, ...) detectadas en el radio de 1 km. a la redonda. El sistema permite simular la temperatura que tendrían diferentes escenarios añadiendo diferentes elementos de infraestructura verde </h3>
@@ -165,10 +165,10 @@ La aplicación está disponible en el siguiente enlace
 
 * Este trabajo ha sido apoyado por el proyecto RTI2018-095097-BI00 en la convocatoria de Proyectos I+D+i 2018 del Ministerio de Ciencia, Innovación 𝑦 Universidades, España.
 
-[product-screenshot-1]: screenshot_1.png
-[product-screenshot-2]: screenshot_2.png
-[product-screenshot-3]: screenshot_3.png
-[product-screenshot-4]: screenshot_4.png
-[product-screenshot-5]: screenshot_5.png
-[product-screenshot-6]: screenshot_6.png
-[product-screenshot-7]: screenshot_7.png
+[product-screenshot-1]: 1.png
+[product-screenshot-2]: 2.png
+[product-screenshot-3]: 3.png
+[product-screenshot-4]: 4.png
+[product-screenshot-5]: 5.png
+[product-screenshot-6]: 6.png
+[product-screenshot-7]: 7.png
