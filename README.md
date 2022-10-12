@@ -172,9 +172,9 @@ Francisco Rodríguez Gómez  - francisco.rdg.gmz@uma.es
 <!-- CONTACT -->
 ## Aplicación
 
-La aplicación está disponible en el siguiente enlace
+<!-- La aplicación está disponible en el siguiente enlace
 
-#Project Link: [https://ursusdm.shinyapps.io/ursusdm_pv/](https://ursusdm.shinyapps.io/ursusdm_pv/)
+Project Link: [https://ursusdm.shinyapps.io/ursusdm_pv/](https://ursusdm.shinyapps.io/ursusdm_lst_pred/)  -->
 
 
 <!-- ACKNOWLEDGEMENTS -->
