@@ -110,14 +110,27 @@ git clone https://github.com/ursusdm/URSUS_LST_PREDICTION.git
 * El sistema permite la simulación de nuevos escenarios modificando los % de vegetación densa, moderada y escasa entre 0-250m.
 
 
-[product-screenshot-1]
-[product-screenshot-2]
-[product-screenshot-3]
-[product-screenshot-4]
-[product-screenshot-5]
-[product-screenshot-6]
-[product-screenshot-7]
-
+  <a>
+    <img src="1.png">
+  </a>
+    <a>
+    <img src="2.png">
+  </a>
+    <a>
+    <img src="3.png">
+  </a>
+    <a>
+    <img src="4.png">
+  </a>
+    <a>
+    <img src="5.png">
+  </a>
+    <a>
+    <img src="6.png">
+  </a>
+    <a>
+    <img src="7.png">
+  </a>
 
 
 <!-- CONTRIBUTING -->
