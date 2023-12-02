@@ -27,87 +27,54 @@
     <img src="ursus_all.png">
   </a>
 
-  <h3 align="center">Herramienta que permite estimar la temperatura(LST) en cualquier punto de cualquier ciudad, analizando las características urbanas (edificios, vegetación, agua, ...) detectadas en el radio de 1 km. a la redonda. El sistema permite simular la temperatura que tendrían diferentes escenarios añadiendo diferentes elementos de infraestructura verde </h3>
+  <h3 align="center">Tool that allows estimating the temperature (LST) at any point in any city, analyzing the urban characteristics (buildings, vegetation, water,...) detected within the 1 km radius. around. The system allows you to simulate the temperature that the most unfavorable points would have in different green infrastructure scenarios.</h3>
 
   <p align="center">
-    Conoce de forma simple e intuitiva como mejoraría la temperatura en las zonas más desfavorables de cualquier ciudad añadiendo infraestructuras verdes  con tan sólo unos "clicks". 
+    Learn in a simple and intuitive way how you would improve the temperature in the most unfavorable areas of any city by adding green infrastructure with just a few "clicks". 
   </p>
 
 
-
-<!-- TABLE OF CONTENTS -->
-## Contenidos
-
-* [Sobre el proyecto](#sobre-el-proyecto)
-  * [Tecnologías](#Tecnologías)
-* [Cómo empezar?](#Cómo_empezar?)
-  * [Prerrequisitos](#Prerrequisitos)
-  * [Instalación](#Instalación)
-* [Uso](#Uso)
-* [Contribuciones](#Contribuciones)
-* [Contacto](#Contacto)
-* [Agradecimientos](#Agradecimientos)
-
-
-
-<!-- ABOUT THE PROJECT -->
-## Sobre el proyecto
-
-URSUS-LST_PREDICTION  es una herramienta de ayuda para la toma de decisiones en cuanto a la determinación de la ubicación óptima para la instalación de infraestructuras verdes en las ciudades, y en cuanto a la selección del tipo adecuado de infraestructura.
-
-...
-
-### Tecnologías
+### Tecnologies
 
 La tecnología empleada actualmente para el desarrollo de la aplicación es la siguiente:
 
 * [R](https://cran.r-project.org/)
 * [R-Studio](https://rstudio.com/)
 * [R-Shiny](https://shiny.rstudio.com/)
-* Librerías de R para trabajar con imágenes Lidar (Lidr) y satelitales (raster)
+* R-libraries
 * [Lidar](http://centrodedescargas.cnig.es/CentroDescargas/index.jsp)
 * Landsat-8 satellite images of the city to be analized+
 * Sentinel-2 satellite images of the city to be analized
 
 
+### Contents
 
-<!-- Cómo empezar? -->
-## Cómo empezar?
-
-
-Para obtener una copia de la aplicación, conocer los requisitos previos para su correcto funcionamiento y los pasos para su instalación, y como hacer uso de la misma, puede seguir los siguientes pasos.
-
-### Prerrequisitos
-
-Para el correcto funcionamiento del DashBoard o aplicación web, será necesario tener conexión a internet e instalar previamente R, R-Shiny, y el resto de librerías necesarias que se describen en el código del servidor (server.r) y en el código de la interfaz gráfica del dashboard (ui.r)
-
-* R
-* R-Shiny
-* R-libraries
-* Conección a internet
+1. Script for model training (models_script.rmd)
+2. Shiny web application (this app use a model trained over Malaga city)
+3. Some lidar images from Malaga city
 
 
+### Steps
 
-### Instalación
+1. Clone the repository
+2. Open R scripts and install R packages
+3. Open server.r and launch shiny app
 
 
-1. Clonar el repositorio
-```sh
-git clone https://github.com/ursusdm/URSUS_LST_PREDICTION.git
-```
-2. Lanzar la aplicación en un servidor shiny
+### Paper
 
+The main methodology that this scripts implement and the expert system for LST prediction is described in paper ....
 
 
 <!-- USAGE EXAMPLES -->
 ## Uso
 
-* Navegue por el mapa y seleccione un punto 
-* Realice la predicción de la temperatura (Predecir LST)
-* El sistema analizará los elementos urbanos a 1km. a la redonda
-* El sistema mostrará los % de cada elemento urbano detectado (veg. escasa, densa, agua, edificios>12m, ...) en intervalos de 250m
-* El sistema mostrará la temperatura predicha (LST predicha por el modelo) y la temperatura real en el punto
-* El sistema permite la simulación de nuevos escenarios modificando los % de vegetación densa, moderada y escasa entre 0-250m.
+* Select the point for LST prediction over the map of the study city
+* Push LST prediction button
+* System will be extract urban features percentages on 1 km of radious
+* Tool plot the percentage for each processed feature: low vegetation, dense vegetation, water, building on different height range
+* Finally, the system plot the LST predicted and real LST in selected point
+* From this point on, the system allows estimates of the temperature at the point to be made by modifying the characteristics of the surrounding vegetation.
 
 
   <a>
@@ -137,28 +104,8 @@ git clone https://github.com/ursusdm/URSUS_LST_PREDICTION.git
   </a>
 
 
-<!-- CONTRIBUTING -->
-## Contribuciones
-
-1. Clonar el proyecto
-```sh
-git clone https://github.com/ursusdm/ursusdm_pv.git
-```
-3. Commit. Preparar los cambios que se subirán a GitHub con un nombre representativo
-```sh
-git commit -m 'Add some Amazing Feature'
-```
-4. Push. Subir los cambios locales a GitHub
-```sh
-git push
-```
-
-5. Para descargar en local el código actual de la rama, realize un Pull 
-
-
-
 <!-- CONTACT -->
-## Contacto
+## Contact
 
 Luis Pérez Urrestarazu  - lperez@us.es
 </br>
@@ -169,18 +116,10 @@ Domingo López Rodríguez  - dominlopez@uma.es
 Francisco Rodríguez Gómez  - francisco.rdg.gmz@uma.es
 
 
-<!-- CONTACT -->
-## Aplicación
-
-<!-- La aplicación está disponible en el siguiente enlace
-
-Project Link: [https://ursusdm.shinyapps.io/ursusdm_pv/](https://ursusdm.shinyapps.io/ursusdm_lst_pred/)  -->
-
-
 <!-- ACKNOWLEDGEMENTS -->
 ## Agradecimientos
 
-* Este trabajo ha sido apoyado por el proyecto RTI2018-095097-BI00 en la convocatoria de Proyectos I+D+i 2018 del Ministerio de Ciencia, Innovación 𝑦 Universidades, España.
+This work has been supported by the project RTI2018-095097-BI00 in the call for R&D+i Projects 2018 of the Ministry of Science, Innovation and Universities, Spain
 
 [product-screenshot-1]: 1.png
 [product-screenshot-2]: 2.png
