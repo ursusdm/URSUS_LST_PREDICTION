@@ -11,9 +11,9 @@
 
 library(igraph)
 library(raster)
-library (rgdal)
+#library (rgdal)
 library(RStoolbox)
-library(RGISTools)
+#library(RGISTools)
 library(zoom)
 library(excelR)
 library(leaflet)
@@ -31,6 +31,7 @@ library(sp)
 library(RColorBrewer)
 library(viridis) 
 library(gstat)
+library(randomForest)
 #library(shinyalert)
 
 ############################getExtent()#####################################################################
@@ -44,7 +45,7 @@ getExtent <- function(catalogo) {
   for (i in 1:nrow(catalogo) ) {
     im <- catalogo [i,]
     # cada imagen lidar se reprojecta a latitud y longitud y cogemos la extensión
-    e <- extent (im)
+    e <- sf::st_bbox(im)
     #x lng y lat sW (abajo izq)   NE (arriba derecha)
     lng1 <- xmin (extent (e))
     lat1 <- ymin (extent (e))
@@ -269,12 +270,15 @@ pinta_capa <- function(capa_a_pintar,name="") {
 ##########################################################
 
 clipeaNDVI <- function(cord.UTM,NDVICLASSIFY,segmentRoofDSM) {
-   p <- c(xmin(cord.UTM[1]),ymin(cord.UTM[1]))
+   print ("cord.UTM")
+   print (cord.UTM)
+   p <- c(xmin(cord.UTM),ymin(cord.UTM))
    d <- distanceFromPoints(NDVICLASSIFY, p)
    d [d>1000] <- NA
    #plot (d)
    filter_raster <- mask(x = NDVICLASSIFY, mask = d)
    cropeada <- crop(x=filter_raster,y=raster(segmentRoofDSM))
+   print ("casca")
    return (cropeada)
 }
 
@@ -294,14 +298,14 @@ createRasterDistance <- function (cord.UTM,rasterObj) {
 ctg <- loadImages()
 
 # RF model
-rf <<- readRDS("rf50Cut.rds")
+rf <- readRDS("rf50Cut.rds")
 
 lst <- readRDS("lst_list.rds")
 
-dai <- readRDS("dai_list.rds")
+#dai <- readRDS("dai_list.rds")
 
 lst <-  lst[[1]]
-dai <- dai[[1]]
+#dai <- dai[[1]]
 
 # getExtents for every lidar image in catalog (para pintar la cuadricula de zonas cubiertas con imágenes LIDAR sobre el mapa Leaflet)
 extents <- getExtent (ctg)
