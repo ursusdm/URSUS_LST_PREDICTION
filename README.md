@@ -63,7 +63,8 @@ La tecnología empleada actualmente para el desarrollo de la aplicación es la s
 
 ### Paper
 
-The main methodology that this scripts implement and the expert system for LST prediction is described in paper ....
+The proposed methodology and tool is described in the paper "URSUS_LST: URban SUStainability intelligent
+system for predicting the impact of urban green infrastructure on land surface temperatures" published in the journal "Environmental Modelling & Software". 
 
 
 <!-- USAGE EXAMPLES -->
