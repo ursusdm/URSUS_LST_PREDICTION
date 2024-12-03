@@ -79,10 +79,7 @@ system for predicting the impact of urban green infrastructure on land surface t
 
 
   <a>
-    <img src="1.png">
-  </a>
-    <a>
-    <img src="2.png">
+    <img width="451" alt="Captura de pantalla 2024-12-03 a las 10 52 47" src="https://github.com/user-attachments/assets/67b9324d-4552-491c-bccc-916d53045be3">
   </a>
     <a>
     <img src="3.png">
