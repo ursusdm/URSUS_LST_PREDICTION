@@ -36,7 +36,7 @@
 
 ### Tecnologies
 
-La tecnología empleada actualmente para el desarrollo de la aplicación es la siguiente:
+The technology currently used for the development of the application is as follows:
 
 * [R](https://cran.r-project.org/)
 * [R-Studio](https://rstudio.com/)
